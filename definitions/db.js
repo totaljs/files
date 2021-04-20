@@ -1,0 +1,1 @@
+require('dbms').init('textdb', ERROR('DBMS'));

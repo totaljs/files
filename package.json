@@ -1,0 +1,19 @@
+{
+  "name": "filesexample",
+  "description": "Files example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "dbms": "^0.9.9",
+    "pg": "^8.6.0",
+    "total4": "latest"
+  },
+  "keywords": [
+    "empty",
+    "project",
+    "files",
+    "example"
+  ],
+  "author": "Jakub Urban",
+  "license": "MIT"
+}
