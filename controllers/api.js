@@ -6,10 +6,9 @@ exports.install = function() {
 	ROUTE('DELETE    /files/                 *Files --> remove');
 	ROUTE('POST      /files/directory/       *Files --> directory');
 
-	// Upload & Download
-	ROUTE('FILE   /files/*.*', download);
-	ROUTE('POST   /files/upload/', upload, ['upload'], 1024 * 2); // 2MB Max
-
+	// Download & Upload
+	ROUTE('FILE      /files/*.*',     download);
+	ROUTE('POST      /files/upload/', upload, ['upload'], 1024 * 2); // 2 MB max.
 };
 
 function upload() {
