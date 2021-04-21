@@ -27,14 +27,9 @@ FUNC.path_get = function(files, path, name) {
 			response.file = file;
 			return response;
 		}
-
 	}
 
-	if (path === '/')
-		response.status = 1;
-	else
-		response.status = 0;
-
+	response.status = path === '/' ? 1 : 0;
 	return response;
 
-}
+};
