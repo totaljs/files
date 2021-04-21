@@ -7,7 +7,7 @@ exports.install = function() {
 	ROUTE('POST      /files/directory/       *Files --> directory');
 
 	// Download & Upload
-	ROUTE('FILE      /files/*.*',     download);
+	ROUTE('FILE      /files/*.*', download);
 	ROUTE('POST      /files/upload/', upload, ['upload'], 1024 * 2); // 2 MB max.
 };
 
@@ -34,7 +34,7 @@ function upload() {
 				self.invalid(err);
 			} else {
 				// Manualy execute method 'setInsert' from schema 'Files' with data validation (+)
-				EXEC('+Files/Upload --> exec', obj, self.successful(function(response) {
+				EXEC('+Files/Upload --> file', obj, self.successful(function(response) {
 					output.push(response);
 					next();
 				}));

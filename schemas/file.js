@@ -1,6 +1,6 @@
 NEWSCHEMA('Files', function(schema) {
 
-	schema.define('name', 'String(50)', true);
+	schema.define('name', 'String(50)');
 	schema.define('path', 'String(200)', true);
 	schema.define('isshared', 'Boolean');
 
@@ -45,9 +45,7 @@ NEWSCHEMA('Files', function(schema) {
 	});
 
 	schema.addWorkflow('directory', function($, model) {
-		model.isdirectory = true;
-		model.ext = undefined;
-		EXEC('+Files/Upload --> exec', model, $.callback);
+		EXEC('+Files/Upload --> directory', model, $.callback);
 	});
 
 });
