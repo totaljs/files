@@ -1,0 +1,11 @@
+{
+  "$id": "https://www.totaljs.com/files/file_upload.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "userid": { "type": "string" },
+    "path": { "type": "string" },
+    "url": { "type": "string" }
+  },
+  "required": ["userid", "path", "url"]
+}

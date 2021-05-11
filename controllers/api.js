@@ -1,52 +1,71 @@
 exports.install = function() {
 
-	ROUTE('GET       /files/                 *Files --> query');
-	ROUTE('POST      /files/                 *Files --> insert');
-	ROUTE('PUT       /files/{id}/            *Files --> update');
-	ROUTE('DELETE    /files/                 *Files --> remove');
-	ROUTE('POST      /files/directory/       *Files --> directory');
+	// Total.js API Routes
+	ROUTE('+API       /api/                      -files               *Files          --> query');
+	ROUTE('+API       /api/                      +files_rename        *Files/Rename   --> exec');
+	ROUTE('+API       /api/                      +files_move          *Files/Move     --> exec');
+	ROUTE('+API       /api/                      +files_remove        *Files          --> remove');
+	ROUTE('+API       /api/                      -files_search        *Files          --> search');
+	ROUTE('+API       /api/                      +files_link          *Files          --> share');
+
+	ROUTE('+API       /api/                      +directory_create    *Files          --> directory');
 
 	// Download & Upload
-	ROUTE('FILE      /files/*.*', download);
-	ROUTE('POST      /files/upload/', upload, ['upload'], 1024 * 2); // 2 MB max.
+	ROUTE('GET        /download/', download);
+	ROUTE('+POST      /api/upload/', upload, ['upload', 1000 * 60], 1024 * 100); // 100 MB max.
+
 };
 
 function upload() {
 
-	var self = this;
-	var output = [];
-	var path = self.body.path || '/';
+	var $ = this;
+	var fs = PATH.fs;
+	var path = U.path($.body.path) || '/';
+	var dir = FUNC.path($.user.id, path);
 
-	self.files.wait(function(file, next) {
+	// Create directory (if not exists)
+	fs.mkdir(dir, { recursive: true }, function() {
+		// Move uploaded files to user's "storage"
+		$.files.wait(function(file, next) {
+			file.move(dir + file.filename, function() {
+				FUNC.file_details($, path + file.filename, function(obj) {
+					// TMS
+					PUBLISH('file_insert', obj);
 
-		var obj = {};
-		obj.fileid = UID();
-		obj.name = file.filename.substring(0, file.filename.lastIndexOf('.'));
-		obj.ext = file.filename.split('.').pop();
-		obj.size = file.size;
-		obj.type = file.type;
-		obj.path = path;
-		obj.isdirectory = false;
-
-		// Save file to filestorage under 'files'
-		file.fs('files', obj.fileid, function(err) {
-			if (err) {
-				self.invalid(err);
-			} else {
-				// Manualy execute method 'setInsert' from schema 'Files' with data validation (+)
-				EXEC('+Files/Upload --> file', obj, self.successful(function(response) {
-					output.push(response);
+					// Proceed to next file
 					next();
-				}));
-			}
-		});
-
-	}, () => self.json(output));
+				});
+			});
+		}, () => $.success(path));
+	});
 
 }
 
-function download(req, res) {
-	var filename = req.split[1];
-	var id = filename.substring(0, filename.lastIndexOf('.'));
-	res.filefs('files', id, true);
+function download() {
+	var $ = this;
+	var path = $.query.path || '/';
+
+	var userid = null;
+
+	// Auth - Token check
+	var token = $.query.token || '';
+	if (token.length)
+		userid = token.decrypt(CONF.secret_download);
+
+	// Auth - User check
+	if ($.user)
+		userid = $.user.id;
+
+	// Auth - Invalid
+	if (!userid) {
+		$.invalid(401);
+		return;
+	}
+
+	// Perform download
+	if (FUNC.valid(path))
+		$.file('~' + FUNC.path(userid, path), U.getName(path));
+	else
+		$.invalid(404);
+
 }

@@ -1,35 +1,51 @@
-FUNC.path_get = function(files, path, name) {
-	// files - [{ id: UID, name: string, path: string }]
+// Return absolute path of user from userid + add 'path'
+FUNC.path = function(userid, path) {
+	return CONF.path[0] === '~' ? PATH.join(CONF.path, userid, path) : PATH.root(PATH.join(CONF.path, userid, path));
+};
 
-	// response.status:
-	// 0 - Invalid (Path doesnt exist)
-	// 1 - Valid
-	// 2 - File exist
+// Check if path is valid
+FUNC.valid = function(path) {
+	return !(/\.\/|\.\./).test(path);
+};
 
-	var response = { status: 1, file: null };
+// Throw error if path is invalid
+FUNC.invalid = function($, path) {
+	if (!FUNC.valid(path))
+		$.invalid(400);
+};
 
-	if (!files.length && path === '/')
-		return response;
+// Prepare file to be sended
+FUNC.file_details = function($, path_rel, callback) {
+	var path = path_rel;
+	var arr = path.split('/');
 
-	for (var i = 0; i < files.length; i++) {
-		var file = files[i];
+	// Detail object
+	var obj = {};
+	obj.ua = $.ua;
+	obj.ip = $.ip;
+	obj.token = U.encrypt_data($.user.id, CONF.secret_download, 'hex');
+	obj.isdirectory = arr[arr.length - 2] === '/';
+	obj.name = arr[arr.length - 2];
+	obj.userid = $.user.id;
+	obj.path = path;
 
-		// Taken
-		if (file.path === path && file.name === name) {
-			response.status = 2;
-			response.file = file;
-			return response;
+	// Attach download url (only for files)
+	if (!obj.isdirectory)
+		obj.url = CONF.url + '/download/?path=' + encodeURIComponent(obj.path) + '&token=' + obj.token;
+
+	// Get details
+	PATH.fs.lstat(FUNC.path(obj.userid, path_rel), function(err, stats) {
+
+		if (stats) {
+			obj.isdirectory = stats.isDirectory();
+			obj.size = stats.size;
+			obj.dtupdated = stats.mtime;
+			obj.dtcreated = stats.ctime;
 		}
 
-		// Find folder from path
-		if (file.path + (file.path !== '/' ? '/' : '') + file.name === path && file.isdirectory) {
-			response.status = 1;
-			response.file = file;
-			return response;
-		}
-	}
+		// Response
+		callback(obj);
 
-	response.status = path === '/' ? 1 : 0;
-	return response;
+	});
 
 };

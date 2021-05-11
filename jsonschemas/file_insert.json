@@ -1,0 +1,19 @@
+{
+  "$id": "https://www.totaljs.com/files/file_insert.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "userid": { "type": "string" },
+    "ip": { "type": "string" },
+    "isdirectory": { "type": "boolean" },
+    "ua": { "type": "string" },
+    "size": { "type": "number" },
+    "type": { "type": "string" },
+    "path": { "type": "string" },
+    "url": { "type": "string" },
+    "dtcreated": { "type": "date" },
+    "dtupdated": { "type": "date" }
+  },
+  "required": ["path"]
+}

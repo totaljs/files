@@ -6,7 +6,7 @@
   "dependencies": {
     "dbms": "^0.9.9",
     "pg": "^8.6.0",
-    "total4": "latest"
+    "total4": "git://github.com/totaljs/framework4.git#10030d036e9085e0634a5f89917bb9263d5c87e9"
   },
   "keywords": [
     "empty",
