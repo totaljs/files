@@ -71,11 +71,12 @@ NEWSCHEMA('Files', function(schema) {
 			// TMS
 			PUBLISH('file_remove', file);
 
-			$.invalid('zakomentovane');
-			// if (file.isdirectory)
-			// PATH.fs.rmdir(FUNC.path($.user.id, path), { recursive: true }, $.done());
-			// else
-			// PATH.fs.unlink(FUNC.path($.user.id, path), $.done());
+			path = FUNC.path($.user.id, path);
+
+			if (file.isdirectory)
+				PATH.fs.rmdir(path, { recursive: true }, $.done());
+			else
+				PATH.fs.unlink(path.substring(0, path.lastIndexOf('/')), $.done());
 
 		});
 

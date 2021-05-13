@@ -1,0 +1,263 @@
+<div data-scope="~PATH~">
+
+	<div class="toolbar">
+		<button class="highlight exec" data-exec="?/upload" title="@(Upload file to the current directory)"><i class="fa fa-cloud-upload"></i></button>
+		<button class="exec" data-exec="?/create" title="@(Create directory)"><i class="fa fa-folder-plus"></i></button>
+		<button class="exec" data-exec="?/search" title="@(Search)"><i class="fa fa-search"></i></button>
+		<hr />
+		<button data-bind="?.view__.selected:value==='list'" class="exec" data-exec="?/view" data-name="list" title="@(Show as list)"><i class="fas fa-list"></i></button>
+		<button data-bind="?.view__.selected:value==='icons'" class="exec" data-exec="?/view" data-name="icons" title="@(Show as icons)"><i class="fas fa-th"></i></button>
+		<hr />
+	</div>
+
+	<div class="breadcrumb" data-bind="?.breadcrumb__template">
+		<script type="text/html">
+			{{ foreach m in value }}
+				<span data-path="{{ m.path }}" class="exec{{ if m.selected }} b{{ fi }} directory" data-exec="?/path">{{ m.name | empty('Root') }}</span>
+				{{ if !m.selected }}
+				<i class="fas fa-angle-right"></i>
+				{{ fi }}
+			{{ end }}
+		</script>
+	</div>
+	<div data---="template__?.items__parent:window;template:?.view;drop:?/drop;margin:90;contextmenu:?/contextmenu__[]">
+
+		<script type="text/html" data-name="list">
+			<div class="list">
+			{{ foreach m in value }}
+				<figure class="exec item{{ if m.up }} up{{ fi }}{{ if m.isdirectory || m.up }} droppable directory{{ fi }}" data-exec="?/path" data-path="{{ m.path }}" draggable="true">
+					<section>
+						{{ if !m.up }}
+							<span class="date">{{ m.dtupdated | format('[ts]') }}</span>
+							{{ if !m.isdirectory }}
+							<span class="size">{{ m.size | filesize }}</span>
+							{{ fi }}
+						{{ fi }}
+						<div class="name{{ if m.isdirectory }} b{{ fi }}">{{ if !m.up }}<i class="{{ m.icon }}"></i>{{ fi }}{{ m.name }}</div>
+					</section>
+				</figure>
+			{{ end }}
+			</div>
+		</script>
+
+		<script type="text/html" data-name="icons">
+			<div class="icons">
+			{{ foreach m in value }}
+				<figure class="exec item{{ if m.up }} up{{ fi }}{{ if m.isdirectory || m.up }} droppable directory{{ fi }}" data-exec="?/path" data-path="{{ m.path }}" title="{{ m.name }}" draggable="true">
+					<div class="icon"><i class="{{ m.icon }}"></i></div>
+					<div class="meta">
+						<div class="name">{{ m.name }}</div>
+						{{ if !m.up }}
+							<span class="size">{{ m.size | filesize }}</span>
+						{{ fi }}
+					</div>
+				</figure>
+			{{ end }}
+			</div>
+		</script>
+
+	</div>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		SET('~PATH~.view', 'list');
+
+		exports.refresh = function() {
+
+		};
+
+		exports.breadcrumb = function(path) {
+			// console.log(path);
+		};
+
+		exports.upload = function() {
+			var opt = {};
+			opt.multiple = true;
+			opt.callback = function(files, e) {
+				exports.drop(e);
+			};
+			SETTER('filebrowser/show', opt);
+		};
+
+		exports.create = function(el) {
+			var model = GET('?');
+			var opt = {};
+			opt.offsetY = 50;
+			opt.element = el;
+			opt.value = '';
+			opt.placeholder = '@(Type a folder name)';
+			opt.callback = function(val) {
+				val && DAPI('directory_create', { path: model.path + val }, ASETTER('message/response', function() {
+					exports.browse();
+				}));
+			};
+			SETTER('floatinginput/show', opt);
+		};
+
+		exports.path = function(el) {
+			var isdir = el.hclass('directory');
+			var path = el.attrd('path');
+			if (isdir)
+				exports.browse(path);
+			else
+				location.href = '/download/?path=' + encodeURIComponent(path);
+		};
+
+		exports.view = function(el) {
+			var view = el.attrd('name');
+			SET('?.view', view);
+		};
+
+		exports.contextmenu = function(e) {
+
+			var figure = $(e.target).closest('figure');
+			if (figure[0]) {
+
+				var path = figure.attrd('path');
+				var isdir = figure.hclass('directory');
+				var opt = {};
+				opt.x = e.pageX;
+				opt.y = e.pageY;
+				opt.items = [];
+
+				if (!isdir)
+					opt.items.push({ id: 'copy', name: '@(Copy link)', icon: 'fas fa-link' });
+
+				opt.items.push({ id: 'rename', name: '@(Rename)', icon: 'fa fa-pencil' });
+				opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'far fa-trash-o red' });
+				opt.callback = function(item) {
+
+					if (item.id === 'copy') {
+						DAPI('files_link', { path: path }, ASETTER('message/response', '@(The link to the file has been copied successfully into the clipboard)', function(response) {
+							SETTER('clipboard/copy', response.value);
+						}));
+						return;
+					}
+
+					if (item.id === 'rename') {
+						var opt = {};
+						opt.icon = 'far fa-keyboard';
+						opt.element = figure;
+						opt.value = figure.find('.name').text();
+						opt.callback = function(val) {
+							val && DAPI('files_rename', { from: path, name: val.replace(/\/|\\|"|\.{2,}|,/g, '') }, ASETTER('message/response', function() {
+								exports.browse();
+							}));
+						};
+						SETTER('floatinginput/show', opt);
+						return;
+					}
+
+					if (item.id === 'remove') {
+						SETTER('approve/show', (isdir ? '@(Are you sure you want to remove selected directory <b>"{0}"</b>?)' : '@(Are you sure you want to remove selected file <b>"{0}"</b>?)').format(path.substring(1)), '"far fa-trash-alt" @(Remove)', function() {
+							DAPI('files_remove', { path: path }, ASETTER('message/response', function() {
+								exports.browse();
+							}));
+						});
+						return;
+					}
+
+				};
+				SETTER('menu/show', opt);
+			}
+
+			e.preventDefault();
+			e.stopPropagation();
+		};
+
+		exports.search = function(el) {
+			var opt = {};
+			opt.search = 'API ' + DEF.api + ' files_search?q={0}';
+			opt.remap = function(items) {
+				for (var i = 0; i < items.length; i++)
+					items[i].name = items[i].path;
+			};
+			opt.callback = function(item) {
+				if (item.isdirectory)
+					exports.browse(item.path);
+				else
+					location.href = '/download/?path=' + encodeURIComponent(item.path);
+			};
+			SETTER('spotlight/show', opt);
+		};
+
+		exports.browse = function(path) {
+
+			exports.scope();
+
+			var model = GET('?');
+
+			if (path == null)
+				path = model.path;
+
+			DAPI('files?path={0} @hideloading'.format(encodeURIComponent(path || '/')), function(response) {
+
+				for (var i = 0; i < response.length; i++) {
+					var item = response[i];
+					item.type = item.isdirectory === true ? 1 : 2;
+					item.icon = 'far fa-' + (item.isdirectory ? 'folder' : 'file-text-o');
+					item.checkbox = true;
+				}
+
+				var arr = [];
+
+				if (path !== '/') {
+					arr = path.split('/').trim();
+					arr.pop();
+					var up = ('/' + arr.join('/') + '/').replace(/\/\//g, '/');
+					response.unshift({ path: up, name: '..', up: true });
+				}
+
+				arr = path.split('/').trim();
+
+				var breadcrumb = [{ path: '/', name: 'Root' }];
+
+				for (var i = 0; i < arr.length; i++) {
+					var item = {};
+					item.name = arr[i];
+					item.path = [];
+					for (var j = 0; j <= i; j++)
+						item.path.push(arr[j]);
+					item.path = '/' + item.path.join('/') + '/';
+					breadcrumb.push(item);
+				}
+
+				breadcrumb.last().selected = true;
+				SET('?.path', path);
+				SET('?.breadcrumb', breadcrumb);
+				SET('?.items', response);
+			});
+		};
+
+		exports.drop = function(e, target, dragged) {
+
+			var model = GET('?');
+			var data = new FormData();
+
+			if (dragged) {
+				DAPI('files_move', { from: dragged.attrd('path'), to: target.attrd('path') }, ASETTER('message/response', function() {
+					exports.browse();
+				}));
+				return;
+			}
+
+			var files = e.target.files || e.originalEvent.dataTransfer.files;
+			for (var i = 0; i < files.length; i++)
+				data.append('file' + i, files[i]);
+
+			data.append('path', target ? target.attrd('path') : model.path);
+
+			UPLOAD('POST /api/upload/ @showloading', data, ASETTER('message/response', function() {
+				exports.browse(model.path);
+			}), function(progress) {
+				SET('common.progress', progress);
+			});
+		};
+
+		exports.browse('/');
+
+	});
+</script>

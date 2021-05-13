@@ -31,5 +31,15 @@ SUBSCRIBE('file_remove', function(model) {
 SUBSCRIBE('file_upload', function(model) {
 	// Download file from url and save to user's "stroage"
 	var path = FUNC.path(model.userid, model.path);
-	DOWNLOAD(model.url, path);
+	DOWNLOAD(model.url, path, function(err) {
+		if (!err) {
+			// TMS
+			var $ = {};
+			$.user = { id: model.userid };
+
+			FUNC.file_details($, model.path, function(file) {
+				PUBLISH('file_insert', file);
+			});
+		}
+	});
 });

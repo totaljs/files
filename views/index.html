@@ -1,0 +1,53 @@
+@{layout('')}
+@{title('Files')}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=10" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+	<meta name="robots" content="all,follow" />
+	<link rel="stylesheet" href="https://cdn.componentator.com/spa.min@18.css" />
+	<script src="https://cdn.componentator.com/spa.min@18.js"></script>
+	@{import('meta', 'head', 'ui.css + default.css', 'default.js + ui.js', 'favicon.ico')}
+</head>
+<body data---="exec">
+
+	<div data---="LAZY message__null__style:2"></div>
+	<div data---="LAZY menu__null__style:2"></div>
+	<div data---="LAZY floatinginput"></div>
+	<div data---="LAZY spotlight"></div>
+	<div data---="LAZY approve"></div>
+	<div data---="LAZY filebrowser"></div>
+	<div data---="LAZY clipboard"></div>
+
+	<div data---="mainprogress__common.progress"></div>
+	<div data---="loading" class="hidden"></div>
+	<div data---="shortcuts"></div>
+
+	<div data---="part__common.page__if:browser;url:/parts/browser.html"></div>
+
+	<script>
+
+		DEF.api = '/api/';
+		var common = {};
+
+		ENV('ts', 'yyyy-MM-mm HH:mm');
+		common.page = 'browser';
+
+		ON('@flag showloading', function() {
+			SETTER('loading/show');
+		});
+
+		ON('@flag hideloading', function() {
+			SETTER('loading/hide', 500);
+		});
+
+		SETTER(true, 'shortcuts/register', 'F1', AEXEC('browser/search'));
+
+	</script>
+
+</body>
+</html>
