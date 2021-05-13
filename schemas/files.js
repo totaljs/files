@@ -14,7 +14,7 @@ NEWSCHEMA('Files', function(schema) {
 		var fs = PATH.fs;
 		var path = FUNC.path($.user.id, U.path(original));
 
-		fs.readdir(path, { withFileTypes: true }, async function(err, response) {
+		fs.readdir(path, { withFileTypes: true }, function(err, response) {
 
 			var output = [];
 
@@ -27,6 +27,7 @@ NEWSCHEMA('Files', function(schema) {
 
 					// Get details
 					fs.stat(path + obj.name, function(err, stats) {
+
 						if (stats) {
 							obj.size = stats.size;
 							obj.dtcreated = stats.ctime;
@@ -43,9 +44,8 @@ NEWSCHEMA('Files', function(schema) {
 					$.callback(output);
 				});
 
-			} else {
+			} else
 				$.callback(output);
-			}
 
 		});
 
@@ -65,18 +65,21 @@ NEWSCHEMA('Files', function(schema) {
 		if (FUNC.invalid($, path))
 			return;
 
+		$.audit(path);
+
 		// Read stats before removing file/directory
 		FUNC.file_details($, path, function(file) {
 
 			// TMS
 			PUBLISH('file_remove', file);
+			$.success();
 
-			path = FUNC.path($.user.id, path);
+			// path = FUNC.path($.user.id, path);
 
-			if (file.isdirectory)
-				PATH.fs.rmdir(path, { recursive: true }, $.done());
-			else
-				PATH.fs.unlink(path.substring(0, path.lastIndexOf('/')), $.done());
+			// if (file.isdirectory)
+				// PATH.fs.rmdir(path, { recursive: true }, $.done());
+			// else
+				// PATH.fs.unlink(path.substring(0, path.lastIndexOf('/')), $.done());
 
 		});
 
@@ -89,6 +92,8 @@ NEWSCHEMA('Files', function(schema) {
 
 		// TMS
 		PUBLISH('directory_create', model);
+
+		$.audit();
 
 		// Create directory (if not exist)
 		if (fs.stat(dir, function(err) {
@@ -166,6 +171,8 @@ NEWSCHEMA('Files', function(schema) {
 		// Path validation
 		if (FUNC.invalid($, path))
 			return;
+
+		$.audit(path);
 
 		FUNC.file_details($, path, function(file) {
 			$.success(file.url);

@@ -29,9 +29,17 @@
 
 	<div data---="part__common.page__if:browser;url:/parts/browser.html"></div>
 
+	@{if user.sa}
+	<div data---="importer__common.form__if:settingsform;url:/forms/settings.html"></div>
+	@{fi}
+
+	@{json(user, 'userdata')}
+
 	<script>
 
 		DEF.api = '/api/';
+
+		var user = PARSE('#userdata');
 		var common = {};
 
 		ENV('ts', 'yyyy-MM-mm HH:mm');

@@ -1,0 +1,100 @@
+<div data---="form__common.form__if:~PATH~;icon:cog;title:@(Settings);autofocus:true;reload:?/reload;scrollbar:1;submit:?/submit;width:800" class="hidden" data-scope="~PATH~">
+	<div class="padding bg-smoke">
+		<div data---="input__?.url__required:1__location.origin" class="m">@(URL address)</div>
+		<div data---="input__?.secret_download__required:1;camouflage:•__GUID(30)">@(Secret for downloads)</div>
+		<div class="help"><span class="exec link" data-exec="?/generate_download"><i class="fas fa-retweet mr5"></i>@(Generate secret)</span></div>
+	</div>
+	<div class="padding npb">
+
+		<div class="panel m">
+			<div class="pull-right" style="margin:10px 10px 0 0">
+				<div data---="togglebutton__?.allow_tms"></div>
+			</div>
+			<label class="bg-smoke"><i class="fas fa-project-diagram"></i>@(Total.js Message Service (TMS))</label>
+			<div class="padding npb">
+				<p><i class="fas fa-circle mr5" data-bind="?.allow_tms__.green__.red:!value"></i>@(TMS allows you to publish and subscribe most important internal operations in the CMS.) <a href="https://docs.totaljs.com/tms/" target="_blank"><i class="fas fa-book mr5"></i>@(TMS documentation)</a>.</p>
+				<div class="row">
+					<div class="col-md-6 m">
+						<div class="alert" data-bind="?.url__text b:value + '/$tms/'">@(Endpoint for the Total.js Message Service app will be in the form <b></b>)</div>
+					</div>
+					<div class="col-md-6 m">
+						<div data---="input__?.secret_tms__maxlength:100;required:1;placeholder:@(Enter token);camouflage:•__''" data-bind="?.allow_tms__enabled">@(Security token)</div>
+						<div class="help"><span class="exec link" data-exec="?/generate_tms"><i class="fas fa-retweet mr5"></i>@(Generate token)</span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel m">
+			<div class="pull-right" style="margin:10px 10px 0 0">
+				<div data---="togglebutton__?.allow_totalapilogger"></div>
+			</div>
+			<label class="bg-smoke"><i class="fab fa-node-js"></i>@(Total API)</label>
+			<div class="padding">
+				<p>@(With the <b>Total.js API key</b>, you can store and monitor logs in the <b>Total.js Platform Logger</b> app.)</p>
+				<div class="row">
+					<div class="col-md-6 m">
+						<div class="alert">@(You can obtain the Total.js API key on the link:) <a href="https://platform.totaljs.com/?open=api" class="b" target="_blank">https://platform.totaljs.com?open=api</a></div>
+					</div>
+					<div class="col-md-6">
+						<div data---="input__?.totalapi__maxlength:100;required:1;placeholder:@(Enter token);camouflage:•__''" data-bind="?.allow_totalapilogger__enabled">@(Total API key)</div>
+						<div class="help"><span class="link exec" data-exec="?/verifytotalapi"><i class="fa fa-angle-right mr5"></i>@(Verify API key)</span></div>
+					</div>
+				</div>
+				<div data-bind="%settingstotalapiresponse__template">
+					<script type="text/html">
+						{{ if value }}
+							<div class="mt10">
+								{{ if value.credits != null }}
+									<div class="nmb inline-message"><i class="fa fa-check-circle"></i> @(Total API key is <b>valid</b>. Balance:) <b>{{ value.credits | format(2) }} &euro;</b></div>
+								{{ else }}
+									<div class="nmb inline-message inline-message-error"><i class="fa fa-warning"></i> @(Total API key is <b>invalid</b>).</div>
+								{{ fi }}
+							</div>
+						{{ fi }}
+					</script>
+				</div>
+			</div>
+		</div>
+	</div>
+	<nav data---="validation__?">
+		<button name="submit" disabled><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function(com) {
+
+		};
+
+		exports.generate_tms = function() {
+			SET('?.secret_tms', Date.now() + GUID(30), 'show');
+		};
+
+		exports.generate_download = function() {
+			SET('?.secret_download', Date.now() + GUID(30), 'show');
+		};
+
+		exports.verifytotalapi = function(el) {
+			var p = '%settingstotalapiresponse @hideloading';
+			var model = GET('?');
+			var data = {};
+			data.totalapi = model.totalapi;
+			if (data.totalapi) {
+				DAPI('totalapi @showloading', data, p);
+			} else
+				NUL(p);
+		};
+
+		exports.submit = function(hide) {
+			var model = GET('? @reset');
+			DAPI('settings_save', model, ASETTER('message/response', '@(Settings have been saved successfully)', hide));
+		};
+
+	});
+
+</script>

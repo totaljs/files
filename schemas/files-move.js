@@ -4,6 +4,7 @@ NEWSCHEMA('Files/Move', function(schema) {
 	schema.define('to', 'String(200)', true);
 
 	schema.addWorkflow('exec', function($, model) {
+
 		model.to = U.path(model.to);
 
 		// Path validation
@@ -12,20 +13,22 @@ NEWSCHEMA('Files/Move', function(schema) {
 
 		var from = FUNC.path($.user.id, model.from);
 		var to = FUNC.path($.user.id, model.to);
-
 		var fs = PATH.fs;
 
 		// Get filename from path
 		var filename = from.split('/').splice(-1, 1).join();
 
 		// Create directory (if doesnt exists yet)
-		fs.mkdir(to, { recursive: true }, function() {
+		fs.mkdir(to, { recursive: true }, $.successful(function() {
 			// Move file
-			fs.rename(from, to + filename, function() {
+			fs.rename(from, to + filename, $.successful(function() {
 				FUNC.file_details($, model.to + filename, function(file) {
 
 					file.from = model.from;
 					file.to = model.to;
+
+					// Log
+					$.audit(model.to + filename);
 
 					// TMS
 					PUBLISH('file_move', file);
@@ -34,8 +37,8 @@ NEWSCHEMA('Files/Move', function(schema) {
 					$.callback(model);
 
 				});
-			});
-		});
+			}));
+		}));
 
 	});
 

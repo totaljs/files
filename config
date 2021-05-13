@@ -1,10 +1,6 @@
-name                          : Files
-allow_custom_titles           : true
-url                           : http://0.0.0.0:8000/
-
-tms_url                       : /$tms/
-// tms_token                  :
+name                             : Files
+allow_custom_titles              : true
 
 // Path to file storage
-path                          : private
-secret_download               : 513b9f84-8389-c77e-f086-aa5d6f804d1f
+path                             : private
+secret_download      (generate)  : 30

@@ -8,6 +8,7 @@
 		<button data-bind="?.view__.selected:value==='list'" class="exec" data-exec="?/view" data-name="list" title="@(Show as list)"><i class="fas fa-list"></i></button>
 		<button data-bind="?.view__.selected:value==='icons'" class="exec" data-exec="?/view" data-name="icons" title="@(Show as icons)"><i class="fas fa-th"></i></button>
 		<hr />
+		<button class="exec" data-exec="?/settings" title="@(Settings)"><i class="fa fa-cog"></i></button>
 	</div>
 
 	<div class="breadcrumb" data-bind="?.breadcrumb__template">
@@ -20,7 +21,7 @@
 			{{ end }}
 		</script>
 	</div>
-	<div data---="template__?.items__parent:window;template:?.view;drop:?/drop;margin:90;contextmenu:?/contextmenu__[]">
+	<div data---="templates__?.items__parent:window;template:?.view;drop:?/drop;margin:90;contextmenu:?/contextmenu__[]">
 
 		<script type="text/html" data-name="list">
 			<div class="list">
@@ -70,7 +71,6 @@
 		};
 
 		exports.breadcrumb = function(path) {
-			// console.log(path);
 		};
 
 		exports.upload = function() {
@@ -85,12 +85,14 @@
 		exports.create = function(el) {
 			var model = GET('?');
 			var opt = {};
-			opt.offsetY = 50;
+			opt.offsetY = 30;
 			opt.element = el;
 			opt.value = '';
-			opt.placeholder = '@(Type a folder name)';
+			opt.summary = '@(Enter a new folder name):';
+			opt.icon = 'far fa-folder';
+			opt.placeholder = '@(folder)';
 			opt.callback = function(val) {
-				val && DAPI('directory_create', { path: model.path + val }, ASETTER('message/response', function() {
+				val && DAPI('directory_create', { path: FUNC.path(model.path, val) + '/' }, ASETTER('message/response', function() {
 					exports.browse();
 				}));
 			};
@@ -109,6 +111,13 @@
 		exports.view = function(el) {
 			var view = el.attrd('name');
 			SET('?.view', view);
+		};
+
+		exports.settings = function() {
+			DAPI('settings_read @showloading', ASETTER('message/response @hideloading', function(response) {
+				SET('settingsform @reset', response);
+				SET('common.form', 'settingsform');
+			}));
 		};
 
 		exports.contextmenu = function(e) {

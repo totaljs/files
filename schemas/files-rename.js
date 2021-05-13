@@ -22,8 +22,13 @@ NEWSCHEMA('Files/Rename', function(schema) {
 			PATH.fs.rename(model.from, to, function(err) {
 				if (err)
 					$.invalid('Invalid operation');
-				else
+				else {
+					// Log
+					$.audit(model.from);
+
+					// Response
 					$.callback(file);
+				}
 			});
 
 		});

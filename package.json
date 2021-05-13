@@ -1,12 +1,11 @@
 {
   "name": "filesexample",
-  "description": "Files example",
+  "description": "Files app",
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "dbms": "^0.9.9",
-    "pg": "^8.6.0",
-    "total4": "git://github.com/totaljs/framework4.git#10030d036e9085e0634a5f89917bb9263d5c87e9"
+    "dbms": "latest",
+    "total4": "latest"
   },
   "keywords": [
     "empty",
@@ -14,6 +13,6 @@
     "files",
     "example"
   ],
-  "author": "Jakub Urban",
+  "author": "Total Avengers",
   "license": "MIT"
 }
