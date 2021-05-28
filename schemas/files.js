@@ -74,12 +74,12 @@ NEWSCHEMA('Files', function(schema) {
 			PUBLISH('file_remove', file);
 			$.success();
 
-			// path = FUNC.path($.user.id, path);
+			path = FUNC.path($.user.id, path);
 
-			// if (file.isdirectory)
-				// PATH.fs.rmdir(path, { recursive: true }, $.done());
-			// else
-				// PATH.fs.unlink(path.substring(0, path.lastIndexOf('/')), $.done());
+			if (file.isdirectory)
+				PATH.fs.rmdir(path, { recursive: true }, $.done());
+			else
+				PATH.fs.unlink(path.substring(0, path.lastIndexOf('/')), $.done());
 
 		});
 
