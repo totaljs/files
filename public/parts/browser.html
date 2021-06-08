@@ -23,6 +23,16 @@
 	</div>
 	<div data---="templates__?.items__parent:window;template:?.view;drop:?/drop;margin:90;contextmenu:?/contextmenu__[]">
 
+		<script type="text/html" data-name="empty">
+			<div class="gray">
+				<i class="far fa-folder fa-4x"></i>
+				<div class="help">
+					<b>@(This folder is empty)</b><br />
+					@(Drag & Drop files here to upload)
+				</div>
+			</div>
+		</script>
+
 		<script type="text/html" data-name="list">
 			<div class="list">
 			{{ foreach m in value }}
@@ -213,7 +223,7 @@
 
 				var arr = [];
 
-				if (path !== '/') {
+				if (path !== '/' && response.length) {
 					arr = path.split('/').trim();
 					arr.pop();
 					var up = ('/' + arr.join('/') + '/').replace(/\/\//g, '/');
