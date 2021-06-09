@@ -88,19 +88,28 @@ NEWSCHEMA('Files', function(schema) {
 	// Create empty directory
 	schema.addWorkflow('directory', function($, model) {
 		var fs = PATH.fs;
-		var dir = FUNC.path($.user.id, U.path(model.path));
+		var path = FUNC.path($.user.id, U.path(model.path));
 
-		// TMS
-		PUBLISH('directory_create', model);
+		// Path validation
+		if (FUNC.invalid($, path))
+			return;
 
 		$.audit();
 
 		// Create directory (if not exist)
-		if (fs.stat(dir, function(err) {
-			if (err)
-				fs.mkdir(dir, { recursive: true }, $.done());
-			else
-				$.success();
+		if (fs.stat(path, function(err) {
+
+			if (err) {
+				fs.mkdir(path, { recursive: true }, function() {
+					// TMS
+					FUNC.file_details($, path, function(file) {
+						file.isdirectory = true;
+						PUBLISH('directory_create', file);
+					});
+				});
+			}
+
+			$.success();
 		}));
 
 	});
