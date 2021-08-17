@@ -71,6 +71,8 @@ function download() {
 		return;
 	}
 
+	$.res.nocompress = true;
+
 	// Perform download
 	if (FUNC.valid(path))
 		$.file('~' + FUNC.path(userid, path), U.getName(path));
